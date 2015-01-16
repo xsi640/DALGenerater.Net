@@ -255,7 +255,7 @@ public int GetPropertyNameMaxLength()
 		
 public string GetMemberVariableDefaultValue(ColumnSchema column)
 {
-	if(column.IsPrimaryKeyMember)
+	if(column.IsPrimaryKeyMember && column.DataType == DbType.Guid)
 	{
 	    return "Guid.NewGuid()";
 	}
