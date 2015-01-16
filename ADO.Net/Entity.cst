@@ -1,0 +1,211 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
+<%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context" Description="Table that the object is based on." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="System.Windows.Forms.Design"%>
+<%@ Assembly Name="System.Design" %>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace <%= NameSpace %>.Entity
+{
+    /// <summary>
+    /// <%= GetCaseName(SourceTable.Name)%>实体类
+    /// </summary>
+	[Serializable]
+	public class <%= GetCaseName(SourceTable.Name)%>
+	{
+		#region 变量定义
+        <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+        <%=this.GetMemberVariableDeclare(column) %>
+        <%} %>
+        #endregion
+        
+        #region 构造函数
+        public <%= GetCaseName(SourceTable.Name)%>()
+        {
+        }
+        
+        public <%= GetCaseName(SourceTable.Name)%>
+        (
+            <%=GetConstrVariable(SourceTable) %>
+        )
+        {
+            <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+            <%=this.GetConstrVariableSetting(column) %>
+            <%} %>
+        }
+        #endregion
+        
+        #region 公共属性
+        <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+        <%=this.GetPropertyVariable(column) %>
+        <%} %>
+        #endregion
+        
+        #region 方法
+        public override bool Equals(object obj)
+        {
+            bool result = false;
+            if (obj is <%= GetCaseName(SourceTable.Name)%>)
+            {
+                result = (obj as <%= GetCaseName(SourceTable.Name)%>).<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name )%> == this.<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name )%>;
+            }
+            return result;
+        }
+        
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+        #endregion
+	}
+}
+<script runat="template">
+#region script
+public string GetCaseName(string value)
+{
+    return value.Substring(0, 1).ToUpper() + value.Substring(1);
+}
+
+public string GetCamelCaseName(string value)
+{
+	return value.Substring(0, 1).ToLower() + value.Substring(1);
+}
+
+public string GetVaribleName(string value)
+{
+    return "_" + this.GetCaseName(value);
+}
+
+public string GetMemberVariableDeclare(ColumnSchema column)
+{
+    return "private " + GetCSharpVariableType(column) + " " + GetVaribleName(column.Name) + " = " + GetMemberVariableDefaultValue(column) + ";";
+}
+
+public string GetConstrVariableSetting(ColumnSchema column){
+    return "this." + GetVaribleName(column.Name) + " = "+ GetCamelCaseName(column.Name) + ";";
+}
+
+public string GetPropertyVariable(ColumnSchema column){
+    string result = string.Empty;
+    result = "public " + GetCSharpVariableType(column) + " " + GetCaseName(column.Name) + "\n{\n";
+    result += "get{ return this." + GetVaribleName(column.Name) + "; }\n";
+    result += "set{ this." + GetVaribleName(column.Name) + " = value; }\n}";
+    return result;
+}
+
+public string GetConstrVariable(TableSchema table){
+    string result = string.Empty;
+    for(int i = 0; i < table.Columns.Count; i++)
+    {
+        ColumnSchema column = table.Columns[i];
+        if(i != table.Columns.Count - 1){
+            result += GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name) + ",\n";
+        }else{
+            result += GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name);
+        }
+    }
+    return result;
+}
+
+public string GetCSharpVariableType(ColumnSchema column)
+{
+	if (column.Name.EndsWith("TypeCode")) return column.Name;
+		
+	switch (column.DataType)
+	{
+		case DbType.AnsiString: return "string";
+		case DbType.AnsiStringFixedLength: return "string";
+		case DbType.Binary: return "byte[]";
+		case DbType.Boolean: return "bool";
+		case DbType.Byte: return "byte";
+		case DbType.Currency: return "Guid";
+		case DbType.Date: return "DateTime";
+		case DbType.DateTime: return "DateTime";
+		case DbType.Decimal: return "decimal";
+		case DbType.Double: return "double";
+		case DbType.Guid: return "Guid";
+		case DbType.Int16: return "short";
+		case DbType.Int32: return "int";
+		case DbType.Int64: return "long";
+		case DbType.Object: 
+							if(column.NativeType=="date")
+								return "DateTime";
+							else
+								return "object";
+		case DbType.SByte: return "sbyte";
+		case DbType.Single: return "float";
+		case DbType.String: return "string";
+		case DbType.StringFixedLength: return "string";
+		case DbType.Time: return "TimeSpan";
+		case DbType.UInt16: return "ushort";
+		case DbType.UInt32: return "uint";
+		case DbType.UInt64: return "ulong";
+		case DbType.VarNumeric: return "decimal";
+		default:
+		{
+			return "__UNKNOWN__" + column.NativeType;
+		}
+	}
+}
+
+public string GetMemberVariableDefaultValue(ColumnSchema column)
+{
+	if(column.IsPrimaryKeyMember && column.DataType == DbType.Guid)
+	{
+	    return "Guid.NewGuid()";
+	}
+	switch (column.DataType)
+	{
+		case DbType.Guid:
+		{
+			return "Guid.Empty";
+		}
+		case DbType.AnsiString:
+		case DbType.AnsiStringFixedLength:
+		case DbType.String:
+		case DbType.StringFixedLength:
+		{
+			//if(column.ExtendedProperties["CS_Default"].Value==null)
+				return "string.Empty";
+			//else{
+			//	string temp = column.ExtendedProperties["CS_Default"].Value.ToString();
+			//	if(temp.IndexOf("(N'")==0)
+			//		temp = temp.Substring(3);
+			//	if(temp.IndexOf("('")==0)
+			//		temp = temp.Substring(2);
+			//	if(temp.LastIndexOf("')")==temp.Length-2)
+			//		temp = temp.Substring(0,temp.Length-2);
+			//	return "\"" + temp + "\"";
+			//}
+		}
+		case DbType.Int16:
+		case DbType.Int32:
+		case DbType.Int64:
+			//if(column.ExtendedProperties["CS_Default"].Value==null)
+				return "0";
+			//else
+			//	return column.ExtendedProperties["CS_Default"].Value.ToString().Replace("((","").Replace("))","");
+		case DbType.DateTime:
+		{
+			return "new DateTime(1900,1,1)";
+		}
+		default:
+		{
+			return "";
+		}
+	}
+}
+
+#endregion script
+</script>
