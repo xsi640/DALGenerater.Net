@@ -1,0 +1,53 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
+<%@ Property Name="Tables" Type="SchemaExplorer.TableSchemaCollection" Category="Context" Description="Table that the object is based on." %>
+<%@ Property Name="NameSpace" Type="System.String" Default="Com.Sy" Category="Text" Description="Namespace for this class" %>
+<%@ Property Name="SqlName" Type="String" Category="Context" Default="MySql" Description="Sql Type Name" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="System.Windows.Forms.Design"%>
+<%@ Assembly Name="System.Design" %>
+
+<script runat="template">
+#region script
+public string GetCaseName(string value)
+{
+    return value.Substring(0, 1).ToUpper() + value.Substring(1);
+}
+
+public string GetCamelCaseName(string value)
+{
+	return value.Substring(0, 1).ToLower() + value.Substring(1);
+}
+#endregion script
+</script>
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using <%=NameSpace %>.IDAL;
+using <%=NameSpace %>.MySqlDAL;
+
+namespace <%=NameSpace %>.Factory
+{
+    public static class DALFactory
+    {
+        <%for(int i = 0; i < Tables.Count; i++){ %>
+        private static I<%=GetCaseName(Tables[i].Name) %>DAL _<%=GetCaseName(Tables[i].Name) %>DAL = new <%=SqlName %><%=GetCaseName(Tables[i].Name) %>DAL();        
+        <%} %>
+        
+        <%for(int i = 0; i < Tables.Count; i++){%>
+        public static I<%=GetCaseName(Tables[i].Name) %>DAL <%=GetCaseName(Tables[i].Name) %>DAL
+        {
+            get{ return _<%=GetCaseName(Tables[i].Name) %>DAL;}
+        }
+        <%} %>
+    }
+}

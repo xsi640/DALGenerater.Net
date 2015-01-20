@@ -1,41 +1,51 @@
-﻿using MySql.Data.MySqlClient;
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
+<%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
+<%@ Property Name="SqlName" Type="String" Category="Context" Default="<%=SqlName %>" Description="Sql Type Name" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="System.Windows.Forms.Design"%>
+<%@ Assembly Name="System.Design" %>
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
-namespace DBAccess
+namespace <%= NameSpace %>
 {
-    public static class MySqlHelper
+    public static class <%=SqlName %>Helper
     {
         #region 变量
-        internal static MySqlConnection _SqLiteConnection = null;
+        internal static <%=SqlName %>Connection _<%=SqlName %>Connection = null;
         #endregion
 
         #region 属性
         /// <summary>
-        /// 返回一个打开状态的MySql连接对象
+        /// 返回一个打开状态的<%=SqlName %>连接对象
         /// 单例设计模式
         /// </summary>
-        public static MySqlConnection MySqlConnection
+        public static <%=SqlName %>Connection <%=SqlName %>Connection
         {
             get
             {
-                if (MySqlHelper._SqLiteConnection == null)
+                if (<%=SqlName %>Helper._<%=SqlName %>Connection == null)
                 {
-                    MySqlHelper._SqLiteConnection = new MySqlConnection();
+                    <%=SqlName %>Helper._<%=SqlName %>Connection = new <%=SqlName %>Connection();
                 }
-                if (string.IsNullOrWhiteSpace(MySqlHelper._SqLiteConnection.ConnectionString))
+                if (string.IsNullOrWhiteSpace(<%=SqlName %>Helper._<%=SqlName %>Connection.ConnectionString))
                 {
-                    MySqlHelper._SqLiteConnection.ConnectionString = Conn.ConnectionString;
+                    <%=SqlName %>Helper._<%=SqlName %>Connection.ConnectionString = Conn.ConnectionString;
                 }
-                if (MySqlHelper._SqLiteConnection.State != ConnectionState.Open)
-                    MySqlHelper._SqLiteConnection.Open();
-                return MySqlHelper._SqLiteConnection;
+                if (<%=SqlName %>Helper._<%=SqlName %>Connection.State != ConnectionState.Open)
+                    <%=SqlName %>Helper._<%=SqlName %>Connection.Open();
+                return <%=SqlName %>Helper._<%=SqlName %>Connection;
             }
-            set { MySqlHelper._SqLiteConnection = value; }
+            set { <%=SqlName %>Helper._<%=SqlName %>Connection = value; }
         }
         #endregion
 
@@ -73,7 +83,7 @@ namespace DBAccess
                     }
                 }
             }
-            catch (MySqlException ex)
+            catch (<%=SqlName %>Exception ex)
             {
                 throw ex;
             }
@@ -86,15 +96,15 @@ namespace DBAccess
         /// <param name="commandText"></param>
         /// <param name="array"></param>
         /// <returns></returns>
-        public static List<T> ExecuteList<T>(string commandText, params MySqlParameter[] array)
+        public static List<T> ExecuteList<T>(string commandText, params <%=SqlName %>Parameter[] array)
         {
             List<T> lists = new List<T>();
             try
             {
-                using (MySqlCommand cmd = new MySqlCommand(commandText, MySqlHelper.MySqlConnection))
+                using (<%=SqlName %>Command cmd = new <%=SqlName %>Command(commandText, <%=SqlName %>Helper.<%=SqlName %>Connection))
                 {
                     cmd.Parameters.AddRange(array);
-                    using (MySqlDataReader dr = cmd.ExecuteReader())
+                    using (<%=SqlName %>DataReader dr = cmd.ExecuteReader())
                     {
                         if (dr != null)
                         {
@@ -110,7 +120,7 @@ namespace DBAccess
                     }
                 }
             }
-            catch (MySqlException ex)
+            catch (<%=SqlName %>Exception ex)
             {
                 throw ex;
             }
@@ -124,15 +134,15 @@ namespace DBAccess
         /// <param name="commandText"></param>
         /// <param name="array"></param>
         /// <returns></returns>
-        public static T ExecuteEntity<T>(string commandText, params MySqlParameter[] array)
+        public static T ExecuteEntity<T>(string commandText, params <%=SqlName %>Parameter[] array)
         {
             T obj = default(T);
             try
             {
-                using (MySqlCommand cmd = new MySqlCommand(commandText, MySqlHelper.MySqlConnection))
+                using (<%=SqlName %>Command cmd = new <%=SqlName %>Command(commandText, <%=SqlName %>Helper.<%=SqlName %>Connection))
                 {
                     cmd.Parameters.AddRange(array);
-                    using (MySqlDataReader dr = cmd.ExecuteReader())
+                    using (<%=SqlName %>DataReader dr = cmd.ExecuteReader())
                     {
                         if (dr != null)
                         {
@@ -145,7 +155,7 @@ namespace DBAccess
                     }
                 }
             }
-            catch (MySqlException ex)
+            catch (<%=SqlName %>Exception ex)
             {
                 throw ex;
             }
@@ -158,19 +168,19 @@ namespace DBAccess
         /// <param name="commandText"></param>
         /// <param name="array"></param>
         /// <returns></returns>
-        public static int ExecuteNonQuery(string commandText, params MySqlParameter[] array)
+        public static int ExecuteNonQuery(string commandText, params <%=SqlName %>Parameter[] array)
         {
             int rowCount = 0;
             try
             {
-                using (MySqlCommand cmd = new MySqlCommand(commandText, MySqlHelper.MySqlConnection))
+                using (<%=SqlName %>Command cmd = new <%=SqlName %>Command(commandText, <%=SqlName %>Helper.<%=SqlName %>Connection))
                 {
                     if (array != null && array.Length > 0)
                         cmd.Parameters.AddRange(array);
                     rowCount = cmd.ExecuteNonQuery();
                 }
             }
-            catch (MySqlException ex)
+            catch (<%=SqlName %>Exception ex)
             {
                 throw ex;
             }
@@ -184,19 +194,19 @@ namespace DBAccess
         /// <param name="commandText"></param>
         /// <param name="array"></param>
         /// <returns></returns>
-        public static int ExecuteNonQuery(MySqlTransaction transaction, string commandText, params MySqlParameter[] array)
+        public static int ExecuteNonQuery(<%=SqlName %>Transaction transaction, string commandText, params <%=SqlName %>Parameter[] array)
         {
             int rowCount = 0;
             try
             {
-                using (MySqlCommand cmd = new MySqlCommand(commandText, MySqlHelper.MySqlConnection, transaction))
+                using (<%=SqlName %>Command cmd = new <%=SqlName %>Command(commandText, <%=SqlName %>Helper.<%=SqlName %>Connection, transaction))
                 {
                     if (array != null && array.Length > 0)
                         cmd.Parameters.AddRange(array);
                     rowCount = cmd.ExecuteNonQuery();
                 }
             }
-            catch (MySqlException ex)
+            catch (<%=SqlName %>Exception ex)
             {
                 throw ex;
             }
@@ -209,12 +219,12 @@ namespace DBAccess
         /// <param name="commandText"></param>
         /// <param name="array"></param>
         /// <returns></returns>
-        public static int ExecuteScalar(string commandText, params MySqlParameter[] array)
+        public static int ExecuteScalar(string commandText, params <%=SqlName %>Parameter[] array)
         {
             int result = 0;
             try
             {
-                using (MySqlCommand cmd = new MySqlCommand(commandText, MySqlHelper.MySqlConnection))
+                using (<%=SqlName %>Command cmd = new <%=SqlName %>Command(commandText, <%=SqlName %>Helper.<%=SqlName %>Connection))
                 {
                     if (array != null && array.Length > 0)
                         cmd.Parameters.AddRange(array);
@@ -225,7 +235,7 @@ namespace DBAccess
                     }
                 }
             }
-            catch (MySqlException ex)
+            catch (<%=SqlName %>Exception ex)
             {
                 throw ex;
             }

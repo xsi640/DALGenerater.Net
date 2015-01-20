@@ -1,0 +1,71 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
+<%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
+<%@ Property Name="SqlName" Type="String" Category="Context" Default="MySql" Description="Sql Type Name" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="System.Windows.Forms.Design"%>
+<%@ Assembly Name="System.Design" %>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace <%= NameSpace %>
+{
+    public static class Conn
+    {
+        #region 常量
+        /// <summary>
+        /// 数据库连接字符串，{0}数据库物理路径
+        /// </summary>
+        public const string DB_CONNECTIONSTRING = "Server={0};Database={1};User={2};Password={3};";
+        #endregion
+
+        #region 变量
+        private static string _ConnectionString = null;
+        #endregion
+
+        #region 属性
+        /// <summary>
+        /// 当前登录用户的数据库连接字符串
+        /// 当更改当前数据库连接字符串后，程序会自动关闭、再次打开数据库连接。
+        /// </summary>
+        public static string ConnectionString
+        {
+            get { return Conn._ConnectionString; }
+            set
+            {
+                if (!string.IsNullOrWhiteSpace(value) && _ConnectionString != value)
+                {
+                    ConnectionClose();
+                    Conn._ConnectionString = value;
+                }
+            }
+        }
+
+        #endregion
+
+        #region 方法
+        /// <summary>
+        /// 关闭SQLite数据库连接对象
+        /// </summary>
+        public static void ConnectionClose()
+        {
+            if (<%=SqlName%>Helper.<%=SqlName%>Connection != null)
+            {
+                if (<%=SqlName%>Helper.<%=SqlName%>Connection.State == System.Data.ConnectionState.Open)
+                {
+                    <%=SqlName%>Helper.<%=SqlName%>Connection.Close();
+                }
+                <%=SqlName%>Helper.<%=SqlName%>Connection = null;
+            }
+        }
+        #endregion
+    }
+}

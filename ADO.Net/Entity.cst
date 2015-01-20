@@ -11,65 +11,7 @@
 <%@ Import Namespace="CodeSmith.CustomProperties" %>
 <%@ Import Namespace="System.Windows.Forms.Design"%>
 <%@ Assembly Name="System.Design" %>
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace <%= NameSpace %>.Entity
-{
-    /// <summary>
-    /// <%= GetCaseName(SourceTable.Name)%>实体类
-    /// </summary>
-	[Serializable]
-	public class <%= GetCaseName(SourceTable.Name)%>
-	{
-		#region 变量定义
-        <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
-        <%=this.GetMemberVariableDeclare(column) %>
-        <%} %>
-        #endregion
-        
-        #region 构造函数
-        public <%= GetCaseName(SourceTable.Name)%>()
-        {
-        }
-        
-        public <%= GetCaseName(SourceTable.Name)%>
-        (
-            <%=GetConstrVariable(SourceTable) %>
-        )
-        {
-            <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
-            <%=this.GetConstrVariableSetting(column) %>
-            <%} %>
-        }
-        #endregion
-        
-        #region 公共属性
-        <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
-        <%=this.GetPropertyVariable(column) %>
-        <%} %>
-        #endregion
-        
-        #region 方法
-        public override bool Equals(object obj)
-        {
-            bool result = false;
-            if (obj is <%= GetCaseName(SourceTable.Name)%>)
-            {
-                result = (obj as <%= GetCaseName(SourceTable.Name)%>).<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name )%> == this.<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name )%>;
-            }
-            return result;
-        }
-        
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-        #endregion
-	}
-}
 <script runat="template">
 #region script
 public string GetCaseName(string value)
@@ -98,9 +40,9 @@ public string GetConstrVariableSetting(ColumnSchema column){
 
 public string GetPropertyVariable(ColumnSchema column){
     string result = string.Empty;
-    result = "public " + GetCSharpVariableType(column) + " " + GetCaseName(column.Name) + "\n{\n";
-    result += "get{ return this." + GetVaribleName(column.Name) + "; }\n";
-    result += "set{ this." + GetVaribleName(column.Name) + " = value; }\n}";
+    result = "\t\tpublic " + GetCSharpVariableType(column) + " " + GetCaseName(column.Name) + "\n\t\t{\n";
+    result += "\t\t\tget{ return this." + GetVaribleName(column.Name) + "; }\n";
+    result += "\t\t\tset{ this." + GetVaribleName(column.Name) + " = value;}\n\t\t}";
     return result;
 }
 
@@ -110,9 +52,9 @@ public string GetConstrVariable(TableSchema table){
     {
         ColumnSchema column = table.Columns[i];
         if(i != table.Columns.Count - 1){
-            result += GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name) + ",\n";
+            result += "\t\t\t" + GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name) + ",\n";
         }else{
-            result += GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name);
+            result += "\t\t\t" + GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name);
         }
     }
     return result;
@@ -209,3 +151,62 @@ public string GetMemberVariableDefaultValue(ColumnSchema column)
 
 #endregion script
 </script>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace <%= NameSpace %>.Entity
+{
+    /// <summary>
+    /// <%= GetCaseName(SourceTable.Name)%>实体类
+    /// </summary>
+	[Serializable]
+	public class <%= GetCaseName(SourceTable.Name)%>
+	{
+		#region 变量定义
+        <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+        <%=this.GetMemberVariableDeclare(column) %>
+        <%} %>
+        #endregion
+        
+        #region 构造函数
+        public <%= GetCaseName(SourceTable.Name)%>()
+        {
+        }
+        
+        public <%= GetCaseName(SourceTable.Name)%>
+        (
+<%=GetConstrVariable(SourceTable) %>
+        )
+        {
+            <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+            <%=this.GetConstrVariableSetting(column) %>
+            <%} %>
+        }
+        #endregion
+        
+        #region 公共属性
+        <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+<%=this.GetPropertyVariable(column) %>
+        <%} %>
+        #endregion
+        
+        #region 方法
+        public override bool Equals(object obj)
+        {
+            bool result = false;
+            if (obj is <%= GetCaseName(SourceTable.Name)%>)
+            {
+                result = (obj as <%= GetCaseName(SourceTable.Name)%>).<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name )%> == this.<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name )%>;
+            }
+            return result;
+        }
+        
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+        #endregion
+	}
+}
