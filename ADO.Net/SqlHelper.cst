@@ -1,6 +1,6 @@
 ﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
 <%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
-<%@ Property Name="SqlName" Type="String" Category="Context" Default="<%=SqlName %>" Description="Sql Type Name" %>
+<%@ Property Name="SqlName" Type="String" Category="Context" Default="<%=SqlName %>" Description="Sql Type Name. (MySql,SQLite,MsSql)" %>
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="System.Data" %>
 <%@ Import Namespace="SchemaExplorer" %>
@@ -11,10 +11,29 @@
 <%@ Import Namespace="CodeSmith.CustomProperties" %>
 <%@ Import Namespace="System.Windows.Forms.Design"%>
 <%@ Assembly Name="System.Design" %>
+<script runat="template">
+#region GetSqlNameSpace
+public string GetSqlNameSpace()
+{
+    string result = string.Empty;
+    if(SqlName.ToLower() == "MySql".ToLower()){
+        result = "using MySql.Data.MySqlClient;";
+    }else if(SqlName.ToLower() == "SQLite".ToLower()){
+        result = "using System.Data.SQLite;";
+    }else if(SqlName.ToLower() == "MsSql"){
+        result = "using System.Data.SqlClient;";
+    }
+    return result;
+}
+#endregion
+</script>
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data;
+using System.Reflection;
+<%=GetSqlNameSpace() %>
 
 namespace <%= NameSpace %>
 {

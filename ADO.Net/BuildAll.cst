@@ -1,7 +1,7 @@
 ﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text"  ResponseEncoding="UTF-8"  Debug="True" Description="Template description here." %>
 <%@ Property Name="Tables" Type="SchemaExplorer.TableSchemaCollection" Category="Source" %>
 <%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
-<%@ Property Name="SqlName" Type="String" Category="Context" Default="MySql" Description="Sql Type Name" %>
+<%@ Property Name="SqlName" Type="String" Category="Context" Default="MySql" Description="Sql Type Name. (MySql,SQLite,MsSql)" %>
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="CodeSmith.CustomProperties" %> 
 <%@ Assembly Name="System.Data" %>
