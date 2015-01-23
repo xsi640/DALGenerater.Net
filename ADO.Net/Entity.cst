@@ -47,8 +47,8 @@ public string GetConstrVariableSetting(ColumnSchema column){
 }
 
 public string GetPropertyVariable(ColumnSchema column){
-    string result = string.Empty;
-    result = "\t\tpublic " + GetCSharpVariableType(column) + " " + GetCaseName(column.Name) + "\n\t\t{\n";
+    string result = "\t\t///<summary>\n\t\t///" + column.Description + "\n\t\t///</summary>\n";
+    result += "\t\tpublic " + GetCSharpVariableType(column) + " " + GetCaseName(column.Name) + "\n\t\t{\n";
     result += "\t\t\tget{ return this." + GetVaribleName(column.Name) + "; }\n";
     result += "\t\t\tset{ this." + GetVaribleName(column.Name) + " = value; }\n\t\t}";
     return result;
@@ -69,16 +69,16 @@ public string GetConstrVariable(TableSchema table){
 }
 
 public string GetParentPropertyDeclare(TableKeySchema foreignKey){
-    string result = string.Empty;
-    result = "\t\tpublic " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "\n\t\t{\n";
+    string result = "\t\t///<summary>\n\t\t///" + foreignKey.PrimaryKey.Table.Description + "\n\t\t///</summary>\n";
+    result += "\t\tpublic " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "\n\t\t{\n";
     result += "\t\t\tget{ return this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"; }\n";
     result += "\t\t\tset{ this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"=value; }\n\t\t}";
     return result;
 }
 
 public string GetChildrenPropertyDeclare(TableKeySchema foreignKey){
-    string result = string.Empty;
-    result = "\t\tpublic IList<" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "> " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "\n\t\t{\n";
+    string result = "\t\t///<summary>\n\t\t///" + foreignKey.PrimaryKey.Table.Description + "\n\t\t///</summary>\n";
+    result += "\t\tpublic IList<" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "> " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "\n\t\t{\n";
     result += "\t\t\tget{ return this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"; }\n";
     result += "\t\t\tset{ this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"=value; }\n\t\t}";
     return result;
@@ -183,7 +183,7 @@ using System.Text;
 namespace <%= NameSpace %>.Entity
 {
     /// <summary>
-    /// <%= GetCaseName(SourceTable.Name)%>实体类
+    /// <%= SourceTable.Description %>
     /// </summary>
 	[Serializable]
 	public class <%= GetCaseName(SourceTable.Name)%>
@@ -206,10 +206,16 @@ namespace <%= NameSpace %>.Entity
         #endregion
         
         #region 构造函数
+        /// <summary>
+        /// <%= SourceTable.Description %>
+        /// </summary>
         public <%= GetCaseName(SourceTable.Name)%>()
         {
         }
         
+        /// <summary>
+        /// <%= SourceTable.Description %>
+        /// </summary>
         public <%= GetCaseName(SourceTable.Name)%>
         (
 <%=GetConstrVariable(SourceTable) %>
