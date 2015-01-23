@@ -34,6 +34,14 @@ public string GetMemberVariableDeclare(ColumnSchema column)
     return "private " + GetCSharpVariableType(column) + " " + GetVaribleName(column.Name) + " = " + GetMemberVariableDefaultValue(column) + ";";
 }
 
+public string GetParentVariableDeclare(TableKeySchema foreignKey){
+    return "private " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " _" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " = null;";
+}
+
+public string GetChildrenVariableDeclare(TableKeySchema foreignKey){
+    return "private IList<" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "> _" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " = null;";
+}
+
 public string GetConstrVariableSetting(ColumnSchema column){
     return "this." + GetVaribleName(column.Name) + " = "+ GetCamelCaseName(column.Name) + ";";
 }
@@ -42,7 +50,7 @@ public string GetPropertyVariable(ColumnSchema column){
     string result = string.Empty;
     result = "\t\tpublic " + GetCSharpVariableType(column) + " " + GetCaseName(column.Name) + "\n\t\t{\n";
     result += "\t\t\tget{ return this." + GetVaribleName(column.Name) + "; }\n";
-    result += "\t\t\tset{ this." + GetVaribleName(column.Name) + " = value;}\n\t\t}";
+    result += "\t\t\tset{ this." + GetVaribleName(column.Name) + " = value; }\n\t\t}";
     return result;
 }
 
@@ -57,6 +65,22 @@ public string GetConstrVariable(TableSchema table){
             result += "\t\t\t" + GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name);
         }
     }
+    return result;
+}
+
+public string GetParentPropertyDeclare(TableKeySchema foreignKey){
+    string result = string.Empty;
+    result = "\t\tpublic " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "\n\t\t{\n";
+    result += "\t\t\tget{ return this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"; }\n";
+    result += "\t\t\tset{ this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"=value; }\n\t\t}";
+    return result;
+}
+
+public string GetChildrenPropertyDeclare(TableKeySchema foreignKey){
+    string result = string.Empty;
+    result = "\t\tpublic IList<" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "> " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "\n\t\t{\n";
+    result += "\t\t\tget{ return this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"; }\n";
+    result += "\t\t\tset{ this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"=value; }\n\t\t}";
     return result;
 }
 
@@ -168,6 +192,17 @@ namespace <%= NameSpace %>.Entity
         <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
         <%=this.GetMemberVariableDeclare(column) %>
         <%} %>
+        
+        <% foreach(TableKeySchema foreignKey in SourceTable.ForeignKeys) {%>
+		<%= GetParentVariableDeclare(foreignKey) %>
+		<% } %>
+        <% foreach(TableSchema table in SourceTable.Database.Tables){ 
+			foreach(TableKeySchema foreignKey in table.ForeignKeys){
+				if ( foreignKey.PrimaryKeyTable.Name == SourceTable.Name ){%>
+		<%= GetChildrenVariableDeclare(foreignKey) %>
+		<% 		}
+			}
+		}%>	
         #endregion
         
         #region 构造函数
@@ -190,6 +225,17 @@ namespace <%= NameSpace %>.Entity
         <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
 <%=this.GetPropertyVariable(column) %>
         <%} %>
+
+        <% foreach(TableKeySchema foreignKey in SourceTable.ForeignKeys) {%>
+<%= GetParentPropertyDeclare(foreignKey) %>
+		<% } %>
+        <% foreach(TableSchema table in SourceTable.Database.Tables){ 
+			foreach(TableKeySchema foreignKey in table.ForeignKeys){
+				if ( foreignKey.PrimaryKeyTable.Name == SourceTable.Name ){%>
+<%= GetChildrenPropertyDeclare(foreignKey) %>
+		<% 		}
+			}
+		}%>	        
         #endregion
         
         #region 方法
