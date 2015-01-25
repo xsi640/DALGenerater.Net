@@ -1,4 +1,4 @@
-﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="True" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
 <%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
 <%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context" Description="Table that the object is based on." %>
 <%@ Assembly Name="SchemaExplorer" %>
@@ -39,7 +39,7 @@ public string GetParentVariableDeclare(TableKeySchema foreignKey){
 }
 
 public string GetChildrenVariableDeclare(TableKeySchema foreignKey){
-    return "private IList<" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "> _" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " = null;";
+    return "private IList<" + GetCaseName(foreignKey.ForeignKeyTable.Name) + "> _" + GetCaseName(foreignKey.ForeignKeyTable.Name) + " = null;";
 }
 
 public string GetConstrVariableSetting(ColumnSchema column){
@@ -77,10 +77,10 @@ public string GetParentPropertyDeclare(TableKeySchema foreignKey){
 }
 
 public string GetChildrenPropertyDeclare(TableKeySchema foreignKey){
-    string result = "\t\t///<summary>\n\t\t///" + foreignKey.PrimaryKey.Table.Description + "\n\t\t///</summary>\n";
-    result += "\t\tpublic IList<" + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "> " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "\n\t\t{\n";
-    result += "\t\t\tget{ return this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"; }\n";
-    result += "\t\t\tset{ this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"=value; }\n\t\t}";
+    string result = "\t\t///<summary>\n\t\t///" + foreignKey.ForeignKeyTable.Description + "\n\t\t///</summary>\n";
+    result += "\t\tpublic IList<" + GetCaseName(foreignKey.ForeignKeyTable.Name) + "> " + GetCaseName(foreignKey.ForeignKeyTable.Name) + "\n\t\t{\n";
+    result += "\t\t\tget{ return this._"+GetCaseName(foreignKey.ForeignKeyTable.Name)+"; }\n";
+    result += "\t\t\tset{ this._"+GetCaseName(foreignKey.ForeignKeyTable.Name)+" = value; }\n\t\t}";
     return result;
 }
 
@@ -196,9 +196,9 @@ namespace <%= NameSpace %>.Entity
         <% foreach(TableKeySchema foreignKey in SourceTable.ForeignKeys) {%>
 		<%= GetParentVariableDeclare(foreignKey) %>
 		<% } %>
-        <% foreach(TableSchema table in SourceTable.Database.Tables){ 
+        <% foreach(TableSchema table in SourceTable.Database.Tables){
 			foreach(TableKeySchema foreignKey in table.ForeignKeys){
-				if ( foreignKey.PrimaryKeyTable.Name == SourceTable.Name ){%>
+				if ( foreignKey.PrimaryKeyTable.Name.ToLower() == SourceTable.Name.ToLower() ){%>
 		<%= GetChildrenVariableDeclare(foreignKey) %>
 		<% 		}
 			}
