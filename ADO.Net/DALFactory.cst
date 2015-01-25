@@ -1,7 +1,6 @@
 ﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
 <%@ Property Name="Tables" Type="SchemaExplorer.TableSchemaCollection" Category="Context" Description="Table that the object is based on." %>
 <%@ Property Name="NameSpace" Type="System.String" Default="Com.Sy" Category="Text" Description="Namespace for this class" %>
-<%@ Property Name="SqlName" Type="String" Category="Context" Default="MySql" Description="Sql Type Name" %>
 <%@ Assembly Name="SchemaExplorer" %>
 <%@ Assembly Name="System.Data" %>
 <%@ Import Namespace="SchemaExplorer" %>
@@ -32,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using <%=NameSpace %>.IDAL;
 using <%=NameSpace %>.MySqlDAL;
 
@@ -39,8 +39,11 @@ namespace <%=NameSpace %>.Factory
 {
     public static class DALFactory
     {
+    
+        private static readonly string WebSiteSqlDAL = System.Configuration.ConfigurationManager.AppSettings["WebSiteSqlDAL"];
+        
         <%for(int i = 0; i < Tables.Count; i++){ %>
-        private static I<%=GetCaseName(Tables[i].Name) %>DAL _<%=GetCaseName(Tables[i].Name) %>DAL = new <%=SqlName %><%=GetCaseName(Tables[i].Name) %>DAL();        
+        private static I<%=GetCaseName(Tables[i].Name) %>DAL _<%=GetCaseName(Tables[i].Name) %>DAL = (I<%=GetCaseName(Tables[i].Name) %>DAL)Assembly.Load(WebSiteSqlDAL).CreateInstance(WebSiteSqlDAL + ".<%=GetCaseName(Tables[i].Name) %>DAL"); 
         <%} %>
         
         <%for(int i = 0; i < Tables.Count; i++){%>

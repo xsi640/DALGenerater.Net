@@ -20,15 +20,8 @@ namespace <%= NameSpace %>
 {
     public static class Conn
     {
-        #region 常量
-        /// <summary>
-        /// 数据库连接字符串，{0}数据库物理路径
-        /// </summary>
-        public const string DB_CONNECTIONSTRING = "Server={0};Database={1};User={2};Password={3};";
-        #endregion
-
         #region 变量
-        private static string _ConnectionString = null;
+        private static string _ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["WebSiteConstr"].ConnectionString;
         #endregion
 
         #region 属性

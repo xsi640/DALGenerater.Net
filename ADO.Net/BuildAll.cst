@@ -13,7 +13,7 @@
 <% 
 Tables = TableUtilities.FilterTables(Tables);
 
-CodeTemplate entityTemplate = GetCodeTemplate("Entity.cst");
+CodeTemplate entityTemplate = GetCodeTemplate("Entities.cst");
 CodeTemplate iBaseDALTemplate = GetCodeTemplate("IBaseDAL.cst");
 CodeTemplate iDALTemplate = GetCodeTemplate("IDAL.cst");
 CodeTemplate sqlHelperTemplate = GetCodeTemplate("SqlHelper.cst");
@@ -23,11 +23,11 @@ CodeTemplate dalFactoryTemplate = GetCodeTemplate("DALFactory.cst");
 
 CreateDirectory(OutputDirectory + "\\Entities\\");
 CreateDirectory(OutputDirectory + "\\IDAL\\");
-CreateDirectory(OutputDirectory + "\\MySqlDAL\\");
+CreateDirectory(OutputDirectory + "\\" + SqlName + "DAL\\");
 CreateDirectory(OutputDirectory + "\\FactoryDAL\\");
 
-RenderFileUsingProperties(OutputDirectory+"\\Conn.cs", true, connTemplate);
-RenderFileUsingProperties(OutputDirectory+"\\" + SqlName + "Helper.cs", true, sqlHelperTemplate);
+RenderFileUsingProperties(OutputDirectory+"\\" + SqlName + "DAL\\Conn.cs", true, connTemplate);
+RenderFileUsingProperties(OutputDirectory+"\\" + SqlName + "DAL\\" + SqlName + "Helper.cs", true, sqlHelperTemplate);
 RenderFileUsingProperties(OutputDirectory+"\\IDAL\\IBaseDAL.cs",true,iBaseDALTemplate);
 RenderFileUsingProperties(OutputDirectory+"\\FactoryDAL\\Factory.cs",true,dalFactoryTemplate);
 
@@ -37,7 +37,7 @@ for (int i = 0; i < Tables.Count; i++)
 	{
         RenderFileUsingProperties(OutputDirectory+"\\Entities\\"+ GetCaseName(Tables[i].Name)+".cs",true,entityTemplate,Tables[i]);
         RenderFileUsingProperties(OutputDirectory+"\\IDAL\\I"+ GetCaseName(Tables[i].Name)+"DAL.cs",true,iDALTemplate,Tables[i]);
-        RenderFileUsingProperties(OutputDirectory+"\\"+ SqlName +"DAL\\"+ SqlName + GetCaseName(Tables[i].Name)+"DAL.cs",true,sqlDALTemplate,Tables[i]);
+        RenderFileUsingProperties(OutputDirectory+"\\"+ SqlName +"DAL\\"+ GetCaseName(Tables[i].Name)+"DAL.cs",true,sqlDALTemplate,Tables[i]);
         
     }
 }
