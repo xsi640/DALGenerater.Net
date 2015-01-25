@@ -1,4 +1,4 @@
-﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Debug="True" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
 <%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
 <%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context" Description="Table that the object is based on." %>
 <%@ Assembly Name="SchemaExplorer" %>
