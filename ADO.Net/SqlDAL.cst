@@ -17,6 +17,22 @@ public string GetCaseName(string value){
     return value.Substring(0, 1).ToUpper() + value.Substring(1);
 }
 
+public string GetTableLeft(){
+    string result = "[";
+    if(SqlName.ToLower() == "mysql"){
+        result = "`";
+    }
+    return result;
+}
+
+public string GetTableRight(){
+    string result = "]";
+    if(SqlName.ToLower() == "mysql"){
+        result = "`";
+    }
+    return result;
+}
+
 public string GetCamelName(string value)
 {
 	return value.Substring(0, 1).ToLower() + value.Substring(1);
@@ -113,13 +129,13 @@ public string GetMemberVariableDefaultValue(ColumnSchema column)
 
 public string GetSqlColumnNames()
 {
-    string result = "["+SourceTable.PrimaryKey.MemberColumns[0].Name+"]";
+    string result = GetTableLeft() + SourceTable.PrimaryKey.MemberColumns[0].Name + GetTableRight() ;
     for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
     {
         if(i == SourceTable.NonForeignKeyColumns.Count -1){
             result += SourceTable.NonPrimaryKeyColumns[i].Name;
         }else{
-            result += ", [" + SourceTable.NonPrimaryKeyColumns[i].Name+"]";
+            result += ", " + GetTableLeft() + SourceTable.NonPrimaryKeyColumns[i].Name + GetTableRight();
         }
     }
     return result;
@@ -145,9 +161,9 @@ public string GetSqlUpdateParams()
     for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
     {
         if(i == SourceTable.NonPrimaryKeyColumns.Count -1){
-            result += "[" + SourceTable.NonPrimaryKeyColumns[i].Name + "]=@" + SourceTable.NonPrimaryKeyColumns[i].Name;
+            result += GetTableLeft() + SourceTable.NonPrimaryKeyColumns[i].Name + GetTableRight() + "=@" + SourceTable.NonPrimaryKeyColumns[i].Name;
         }else{
-            result += "[" + SourceTable.NonPrimaryKeyColumns[i].Name + "]=@" + SourceTable.NonPrimaryKeyColumns[i].Name+" ,";
+            result += GetTableLeft() + SourceTable.NonPrimaryKeyColumns[i].Name + GetTableRight() + "=@" + SourceTable.NonPrimaryKeyColumns[i].Name+" ,";
         }
     }
     return result;
@@ -194,16 +210,16 @@ namespace <%=NameSpace %>.MySqlDAL
     public class <%=GetCaseName(SourceTable.Name) %>DAL : I<%=GetCaseName(SourceTable.Name) %>DAL
     {
         #region 常量
-        public const string INSERT = "INSERT INTO [<%=SourceTable%>](<%=GetSqlColumnNames()%>) VALUES(<%=GetSqlColumnParamsName()%>)";
-        public const string UPDATE = "UPDATE [<%=SourceTable%>] SET <%=GetSqlUpdateParams()%> WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
-        public const string DELETE = "DELETE FROM [<%=SourceTable%>] WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
-        public const string DELETEALL = "DELETE FROM [<%=SourceTable%>]";
-        public const string DELETEWHERE = "DELETE FROM [<%=SourceTable%>] WHERE {0}";
-        public const string SELECT = "SELECT <%=GetSqlColumnNames()%> FROM [<%=SourceTable%>] WHERE {0} ORDER BY {1}";
-        public const string SELECTALL = "SELECT <%=GetSqlColumnNames()%> FROM [<%=SourceTable%>] ORDER BY {0}";
-        public const string GET = "SELECT <%=GetSqlColumnNames()%> FROM [<%=SourceTable%>] WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
-        public const string COUNTALL = "SELECT COUNT(-1) FROM [<%=SourceTable%>]";
-        public const string COUNT = "SELECT COUNT(-1) FROM [<%=SourceTable%>] WHERE {0}";
+        public const string INSERT = "INSERT INTO <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%>(<%=GetSqlColumnNames()%>) VALUES(<%=GetSqlColumnParamsName()%>)";
+        public const string UPDATE = "UPDATE <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> SET <%=GetSqlUpdateParams()%> WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
+        public const string DELETE = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
+        public const string DELETEALL = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%>";
+        public const string DELETEWHERE = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE {0}";
+        public const string SELECT = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE {0} ORDER BY {1}";
+        public const string SELECTALL = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> ORDER BY {0}";
+        public const string GET = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
+        public const string COUNTALL = "SELECT COUNT(-1) FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%>";
+        public const string COUNT = "SELECT COUNT(-1) FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE {0}";
         #endregion
         
         #region 构造函数
@@ -287,7 +303,7 @@ namespace <%=NameSpace %>.MySqlDAL
         public int InsertOrUpdate(<%=GetCaseName(SourceTable.Name) %> <%=GetCamelName(SourceTable.Name) %>)
         {
             int result = 0;
-            if (Count(string.Format("[<%=SourceTable.PrimaryKey.MemberColumns[0].Name%>]='{0}'", <%=GetCamelName(SourceTable.Name) %>.<%=SourceTable.PrimaryKey.MemberColumns[0].Name%>)) == 0)
+            if (Count(string.Format("<%=GetTableLeft()%><%=SourceTable.PrimaryKey.MemberColumns[0].Name%><%=GetTableRight()%>='{0}'", <%=GetCamelName(SourceTable.Name) %>.<%=SourceTable.PrimaryKey.MemberColumns[0].Name%>)) == 0)
             {
                 result = Insert(<%=GetCamelName(SourceTable.Name) %>);
             }
@@ -317,7 +333,7 @@ namespace <%=NameSpace %>.MySqlDAL
             {
                 foreach (<%=GetCaseName(SourceTable.Name) %> <%=GetCamelName(SourceTable.Name) %> in lists)
                 {
-                    if (Count(string.Format("[<%=SourceTable.PrimaryKey.MemberColumns[0].Name%>]='{0}'", <%=GetCamelName(SourceTable.Name) %>.<%=SourceTable.PrimaryKey.MemberColumns[0].Name%>)) == 0)
+                    if (Count(string.Format("<%=GetTableLeft()%><%=SourceTable.PrimaryKey.MemberColumns[0].Name%><%=GetTableRight()%>='{0}'", <%=GetCamelName(SourceTable.Name) %>.<%=SourceTable.PrimaryKey.MemberColumns[0].Name%>)) == 0)
                     {
                         <% for(int i = 0; i < SourceTable.Columns.Count;i++){%>
                         <%=SqlName %>Parameter param<%=SourceTable.Columns[i].Name%> = new <%=SqlName %>Parameter("@<%=SourceTable.Columns[i].Name%>", <%=GetCamelName(SourceTable.Name) %>.<%=SourceTable.Columns[i].Name%>);
@@ -484,7 +500,7 @@ namespace <%=NameSpace %>.MySqlDAL
             }
             if(string.IsNullOrEmpty(order))
             {
-                order = "[<%=SourceTable.PrimaryKey.MemberColumns[0].Name%>] DESC";    
+                order = "<%=GetTableLeft()%><%=SourceTable.PrimaryKey.MemberColumns[0].Name%><%=GetTableRight()%> DESC";    
             }
             
             string sql = string.Format(SELECT, where, order);
@@ -510,7 +526,7 @@ namespace <%=NameSpace %>.MySqlDAL
             List<<%=GetCaseName(SourceTable.Name) %>> result = new List<<%=GetCaseName(SourceTable.Name) %>>();
             if(string.IsNullOrEmpty(order))
             {
-                order = "[<%=SourceTable.PrimaryKey.MemberColumns[0].Name%>] DESC";    
+                order = "<%=GetTableLeft()%><%=SourceTable.PrimaryKey.MemberColumns[0].Name%><%=GetTableRight()%> DESC";    
             }
         
             string sql = string.Format(SELECTALL, order);
