@@ -29,7 +29,7 @@ CreateDirectory(OutputDirectory + "\\FactoryDAL\\");
 RenderFileUsingProperties(OutputDirectory+"\\" + SqlName + "DAL\\Conn.cs", true, connTemplate);
 RenderFileUsingProperties(OutputDirectory+"\\" + SqlName + "DAL\\" + SqlName + "Helper.cs", true, sqlHelperTemplate);
 RenderFileUsingProperties(OutputDirectory+"\\IDAL\\IBaseDAL.cs",true,iBaseDALTemplate);
-RenderFileUsingProperties(OutputDirectory+"\\FactoryDAL\\Factory.cs",true,dalFactoryTemplate);
+RenderFileUsingProperties(OutputDirectory+"\\FactoryDAL\\DALFactory.cs",true,dalFactoryTemplate);
 
 for (int i = 0; i < Tables.Count; i++)
 {
