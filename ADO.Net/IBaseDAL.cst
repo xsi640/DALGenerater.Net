@@ -34,7 +34,9 @@ namespace <%=NameSpace %>.IDAL
         int DeleteAll(string where);
         int Delete(IList<TKey> idLists);
         List<TObject> Select(string where, string order = "");
+        List<TObject> Select(string where, int offset, int limit, string order = "");
         List<TObject> SelectAll(string order = "");
+        List<TObject> SelectAll(int offset, int limit, string order = "");
         TObject Get(TKey key);
         int Count(string where);
         int CountAll();

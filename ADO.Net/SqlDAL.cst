@@ -517,6 +517,39 @@ namespace <%=NameSpace %>.MySqlDAL
         }
         
         /// <summary>
+        /// 查询
+        /// </summary>
+        /// <param name="where">查询条件</param>
+        /// <param name="offset">索引位置</param>
+        /// <param name="limit">返回记录数</param>
+        /// <param name="order">排序</param>
+        /// <returns>查询的结果</returns>
+        public List<<%=GetCaseName(SourceTable.Name) %>> Select(string where, int offset, int limit, string order = "")
+        {
+            List<<%=GetCaseName(SourceTable.Name) %>> result = new List<<%=GetCaseName(SourceTable.Name) %>>();
+            if(string.IsNullOrEmpty(where))
+            {
+                where = "1=1";
+            }
+            if(string.IsNullOrEmpty(order))
+            {
+                order = "<%=GetTableLeft()%><%=SourceTable.PrimaryKey.MemberColumns[0].Name%><%=GetTableRight()%> DESC";    
+            }
+            
+            string sql = string.Format(SELECT, where, order) + string.Format(" limit {0},{1}", offset, limit);
+            
+            try
+            {
+                result = <%=SqlName %>Helper.ExecuteList<<%=GetCaseName(SourceTable.Name) %>>(sql);
+            }
+            catch(<%=SqlName %>Exception ex)
+            {
+                throw ex;
+            }
+            return result;
+        }
+        
+        /// <summary>
         /// 查询所有记录
         /// </summary>
         /// <param name="order">排序</param>
@@ -530,6 +563,32 @@ namespace <%=NameSpace %>.MySqlDAL
             }
         
             string sql = string.Format(SELECTALL, order);
+            
+            try
+            {
+                result = <%=SqlName %>Helper.ExecuteList<<%=GetCaseName(SourceTable.Name) %>>(sql);
+            }
+            catch(<%=SqlName %>Exception ex)
+            {
+                throw ex;
+            }
+            return result;
+        }
+        
+        /// <summary>
+        /// 查询所有记录
+        /// </summary>
+        /// <param name="order">排序</param>
+        /// <returns>查询的结果</returns>
+        public List<<%=GetCaseName(SourceTable.Name) %>> SelectAll(int offset, int limit, string order = "")
+        {
+            List<<%=GetCaseName(SourceTable.Name) %>> result = new List<<%=GetCaseName(SourceTable.Name) %>>();
+            if(string.IsNullOrEmpty(order))
+            {
+                order = "<%=GetTableLeft()%><%=SourceTable.PrimaryKey.MemberColumns[0].Name%><%=GetTableRight()%> DESC";    
+            }
+        
+            string sql = string.Format(SELECTALL, order) + string.Format(" limit {0},{1}", offset, limit);
             
             try
             {
