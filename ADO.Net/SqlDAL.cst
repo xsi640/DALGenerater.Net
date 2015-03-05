@@ -132,25 +132,17 @@ public string GetSqlColumnNames()
     string result = GetTableLeft() + SourceTable.PrimaryKey.MemberColumns[0].Name + GetTableRight() ;
     for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
     {
-        if(i == SourceTable.NonForeignKeyColumns.Count -1){
-            result += SourceTable.NonPrimaryKeyColumns[i].Name;
-        }else{
-            result += ", " + GetTableLeft() + SourceTable.NonPrimaryKeyColumns[i].Name + GetTableRight();
-        }
+        result += ", " + GetTableLeft() + SourceTable.NonPrimaryKeyColumns[i].Name + GetTableRight();
     }
     return result;
 }
 
 public string GetSqlColumnParamsName()
 {
-    string result = "@"+SourceTable.PrimaryKey.MemberColumns[0].Name;
+    string result = "@" + SourceTable.PrimaryKey.MemberColumns[0].Name;
     for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
     {
-        if(i == SourceTable.NonForeignKeyColumns.Count -1){
-            result += SourceTable.NonPrimaryKeyColumns[i].Name;
-        }else{
-            result += ", @" + SourceTable.NonPrimaryKeyColumns[i].Name;
-        }
+        result += ", @" + SourceTable.NonPrimaryKeyColumns[i].Name;
     }
     return result;
 }
@@ -211,13 +203,13 @@ namespace <%=NameSpace %>.MySqlDAL
     {
         #region 常量
         public const string INSERT = "INSERT INTO <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%>(<%=GetSqlColumnNames()%>) VALUES(<%=GetSqlColumnParamsName()%>)";
-        public const string UPDATE = "UPDATE <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> SET <%=GetSqlUpdateParams()%> WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
-        public const string DELETE = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
+        public const string UPDATE = "UPDATE <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> SET <%=GetSqlUpdateParams()%> WHERE <%=GetTableLeft() %><%=SourceTable.PrimaryKey.MemberColumns[0].Name %><%=GetTableRight() %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
+        public const string DELETE = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE <%=GetTableLeft() %><%=SourceTable.PrimaryKey.MemberColumns[0].Name %><%=GetTableRight() %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
         public const string DELETEALL = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%>";
         public const string DELETEWHERE = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE {0}";
         public const string SELECT = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE {0} ORDER BY {1}";
         public const string SELECTALL = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> ORDER BY {0}";
-        public const string GET = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE <%=SourceTable.PrimaryKey.MemberColumns[0].Name %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
+        public const string GET = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE <%=GetTableLeft() %><%=SourceTable.PrimaryKey.MemberColumns[0].Name %><%=GetTableRight() %>=@<%=SourceTable.PrimaryKey.MemberColumns[0].Name %>";
         public const string COUNTALL = "SELECT COUNT(-1) FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%>";
         public const string COUNT = "SELECT COUNT(-1) FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE {0}";
         #endregion
