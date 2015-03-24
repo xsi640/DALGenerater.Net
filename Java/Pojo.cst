@@ -1,0 +1,208 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Java" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
+<%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context" Description="Table that the object is based on." %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="System.Windows.Forms.Design"%>
+<%@ Assembly Name="System.Design" %>
+
+<script runat="template">
+#region script
+public string GetCaseName(string value)
+{
+    return value.Substring(0, 1).ToUpper() + value.Substring(1);
+}
+
+public string GetCamelCaseName(string value)
+{
+	return value.Substring(0, 1).ToLower() + value.Substring(1);
+}
+
+public string GetVaribleName(string value)
+{
+    return this.GetCamelCaseName(value);
+}
+
+public string GetMemberVariableDeclare(ColumnSchema column)
+{
+    return "private " + GetCSharpVariableType(column) + " " + GetVaribleName(column.Name) + ";";
+}
+
+public string GetParentVariableDeclare(TableKeySchema foreignKey){
+    return "private " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " " + GetCamelCaseName(foreignKey.PrimaryKey.Table.Name) + " = null;";
+}
+
+public string GetChildrenVariableDeclare(TableKeySchema foreignKey){
+    return "private List<" + GetCaseName(foreignKey.ForeignKeyTable.Name) + "> " + GetCamelCaseName(foreignKey.ForeignKeyTable.Name) + "Lists = null;";
+}
+
+public string GetConstrVariableSetting(ColumnSchema column){
+    return "this." + GetVaribleName(column.Name) + " = "+ GetCamelCaseName(column.Name) + ";";
+}
+
+public string GetPropertyVariable(ColumnSchema column){
+    string result = string.Empty;
+    result = "\tpublic " + GetCSharpVariableType(column)+ " get" + GetCaseName(column.Name) + "(){";
+    result += "\n\t\treturn this."+GetVaribleName(column.Name) +";\n\t}";
+    result += "\n";
+    result += "\tpublic void set"+ GetCaseName(column.Name) + "(" + GetCSharpVariableType(column)+ " "+GetCamelCaseName(column.Name)+"){";
+    result += "\n\t\tthis."+GetVaribleName(column.Name) +"="+ GetCamelCaseName(column.Name) +";\n\t}";
+    return result;
+}
+
+public string GetConstrVariable(TableSchema table){
+    string result = string.Empty;
+    for(int i = 0; i < table.Columns.Count; i++)
+    {
+        ColumnSchema column = table.Columns[i];
+        if(i != table.Columns.Count - 1){
+            result += "\t\t\t" + GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name) + ",\n";
+        }else{
+            result += "\t\t\t" + GetCSharpVariableType(column) + " " + GetCamelCaseName(column.Name);
+        }
+    }
+    return result;
+}
+
+public string GetParentPropertyDeclare(TableKeySchema foreignKey){
+    string result = "\tpublic "+GetCaseName(foreignKey.PrimaryKey.Table.Name) +" get"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"(){\n";
+    result+= "\t\treturn this."+GetCamelCaseName(foreignKey.PrimaryKey.Table.Name)+";\n";
+    result += "\t}";
+    result += "\n";
+    
+    result += "\tpublic void set"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"("+GetCaseName(foreignKey.PrimaryKey.Table.Name) +" "+GetCamelCaseName(foreignKey.PrimaryKey.Table.Name)+"){\n";
+    result += "\t\tthis."+GetCamelCaseName(foreignKey.PrimaryKey.Table.Name)+"="+GetCamelCaseName(foreignKey.PrimaryKey.Table.Name)+";\n";
+    result += "\t}";
+    
+    //string result = "\t\t///<summary>\n\t\t///" + foreignKey.PrimaryKey.Table.Description + "\n\t\t///</summary>\n";
+    //result += "\t\tpublic " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + " " + GetCaseName(foreignKey.PrimaryKey.Table.Name) + "\n\t\t{\n";
+    //result += "\t\t\tget{ return this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"; }\n";
+    //result += "\t\t\tset{ this._"+GetCaseName(foreignKey.PrimaryKey.Table.Name)+"=value; }\n\t\t}";
+    return result;
+}
+
+public string GetChildrenPropertyDeclare(TableKeySchema foreignKey){
+    string result = "\tpublic List<"+GetCaseName(foreignKey.ForeignKeyTable.Name) +"> get"+GetCaseName(foreignKey.ForeignKeyTable.Name)+"Lists(){\n";
+    result+= "\t\treturn this."+GetCamelCaseName(foreignKey.ForeignKeyTable.Name)+"Lists;\n";
+    result += "\t}";
+    result += "\n";
+    
+    result += "\tpublic void set"+GetCaseName(foreignKey.ForeignKeyTable.Name)+"Lists(List<"+GetCaseName(foreignKey.ForeignKeyTable.Name) +"> "+GetCamelCaseName(foreignKey.ForeignKeyTable.Name)+"Lists){\n";
+    result += "\t\tthis."+GetCamelCaseName(foreignKey.ForeignKeyTable.Name)+"Lists = "+GetCamelCaseName(foreignKey.ForeignKeyTable.Name)+"Lists;\n";
+    result += "\t}";
+    //string result = "\t\t///<summary>\n\t\t///" + foreignKey.ForeignKeyTable.Description + "\n\t\t///</summary>\n";
+    //result += "\t\tpublic IList<" + GetCaseName(foreignKey.ForeignKeyTable.Name) + "> " + GetCaseName(foreignKey.ForeignKeyTable.Name) + "\n\t\t{\n";
+    //result += "\t\t\tget{ return this._"+GetCaseName(foreignKey.ForeignKeyTable.Name)+"; }\n";
+    //result += "\t\t\tset{ this._"+GetCaseName(foreignKey.ForeignKeyTable.Name)+" = value; }\n\t\t}";
+    return result;
+}
+
+public string GetCSharpVariableType(ColumnSchema column)
+{
+	if (column.Name.EndsWith("TypeCode")) return column.Name;
+		
+	switch (column.DataType)
+	{
+		case DbType.AnsiString: return "String";
+		case DbType.AnsiStringFixedLength: return "String";
+		case DbType.Binary: return "byte[]";
+		case DbType.Boolean: return "boolean";
+		case DbType.Byte: return "byte";
+		case DbType.Currency: return "UUID";
+		case DbType.Date: return "Date";
+		case DbType.DateTime: return "Date";
+		case DbType.Decimal: return "float";
+		case DbType.Double: return "double";
+		case DbType.Guid: return "UUID";
+		case DbType.Int16: return "int";
+		case DbType.Int32: return "int";
+		case DbType.Int64: return "long";
+		case DbType.Object: 
+							if(column.NativeType=="date")
+								return "Date";
+							else
+								return "object";
+		case DbType.SByte: return "byte";
+		case DbType.Single: return "float";
+		case DbType.String: return "String";
+		case DbType.StringFixedLength: return "String";
+		case DbType.Time: return "Date";
+		case DbType.UInt16: return "short";
+		case DbType.UInt32: return "int";
+		case DbType.UInt64: return "long";
+		case DbType.VarNumeric: return "float";
+		default:
+		{
+			return "__UNKNOWN__" + column.NativeType;
+		}
+	}
+}
+
+#endregion script
+</script>
+package <%= NameSpace %>.pojo;
+
+import java.util.Date;
+import java.util.List;
+
+public class <%= GetCaseName(SourceTable.Name)%>{
+
+    <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+    <%=this.GetMemberVariableDeclare(column) %>
+    <%} %>
+    
+    <% foreach(TableKeySchema foreignKey in SourceTable.ForeignKeys) {%>
+	<%= GetParentVariableDeclare(foreignKey) %>
+	<% } %>
+    <% foreach(TableSchema table in SourceTable.Database.Tables){
+		foreach(TableKeySchema foreignKey in table.ForeignKeys){
+			if ( foreignKey.PrimaryKeyTable.Name.ToLower() == SourceTable.Name.ToLower() ){%>
+	<%= GetChildrenVariableDeclare(foreignKey) %>
+	<% 		}
+		}
+	}%>	
+    
+    public <%= GetCaseName(SourceTable.Name)%>() {
+    }
+    
+    public <%= GetCaseName(SourceTable.Name)%>
+    (
+<%=GetConstrVariable(SourceTable) %>
+    ){
+        <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+        <%=this.GetConstrVariableSetting(column) %>
+        <%} %>
+    }
+    
+    <%foreach(ColumnSchema column in this.SourceTable.Columns ) {%>
+<%=this.GetPropertyVariable(column) %>
+    <%} %>
+
+    <% foreach(TableKeySchema foreignKey in SourceTable.ForeignKeys) {%>
+<%= GetParentPropertyDeclare(foreignKey) %>
+	<% } %>
+    <% foreach(TableSchema table in SourceTable.Database.Tables){ 
+		foreach(TableKeySchema foreignKey in table.ForeignKeys){
+			if ( foreignKey.PrimaryKeyTable.Name == SourceTable.Name ){%>
+<%= GetChildrenPropertyDeclare(foreignKey) %>
+	<% 		}
+		}
+	}%>	        
+    
+    @Override
+    public boolean equals(Object obj) {
+        boolean result = false;
+		if(obj instanceof <%= GetCaseName(SourceTable.Name)%>){
+			<%= GetCaseName(SourceTable.Name)%> <%= GetCamelCaseName(SourceTable.Name)%> = (<%= GetCaseName(SourceTable.Name)%>)obj;
+			if(<%= GetCamelCaseName(SourceTable.Name)%>.get<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name )%>() == this.get<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name )%>())
+				return true;
+		}
+		return result;
+    }
+}

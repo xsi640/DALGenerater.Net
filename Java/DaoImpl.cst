@@ -1,0 +1,429 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Java" Inherits="CodeSmith.BaseTemplates.OutputFileCodeTemplate" ResponseEncoding="utf-8" Description="Generates a very simple business object." %>
+<%@ Property Name="NameSpace" Type="String" Category="Context" Default="Com.Sy" Description="The namespace to use for this class" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Context" Description="Table that the object is based on." %>
+<%@ Property Name="SqlName" Type="String" Category="Context" Default="MySql" Description="Sql Type Name. (MySql,SQLite,MsSql)" %>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.IO" %>
+<%@ Assembly Name="CodeSmith.BaseTemplates" %>
+<%@ Assembly Name="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="CodeSmith.CustomProperties" %>
+<%@ Import Namespace="System.Windows.Forms.Design"%>
+<%@ Assembly Name="System.Design" %>
+<script runat="template">
+public string GetCaseName(string value){
+    return value.Substring(0, 1).ToUpper() + value.Substring(1);
+}
+
+public string GetTableLeft(){
+    string result = "[";
+    if(SqlName.ToLower() == "mysql"){
+        result = "`";
+    }
+    return result;
+}
+
+public string GetTableRight(){
+    string result = "]";
+    if(SqlName.ToLower() == "mysql"){
+        result = "`";
+    }
+    return result;
+}
+
+public string GetCamelName(string value)
+{
+	return value.Substring(0, 1).ToLower() + value.Substring(1);
+}
+
+public string GetSqlColumnNames()
+{
+    string result = GetTableLeft() + SourceTable.PrimaryKey.MemberColumns[0].Name + GetTableRight() ;
+    for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
+    {
+        result += ", " + GetTableLeft() + SourceTable.NonPrimaryKeyColumns[i].Name + GetTableRight();
+    }
+    return result;
+}
+
+public string GetSqlColumnParamsName()
+{
+    string result = "?";
+    for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
+    {
+        result += ", ?";
+    }
+    return result;
+}
+
+public string GetSqlUpdateParams()
+{
+    string result = string.Empty;
+    for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
+    {
+        if(i == SourceTable.NonPrimaryKeyColumns.Count -1){
+            result += GetTableLeft() + SourceTable.NonPrimaryKeyColumns[i].Name + GetTableRight() + "=?";
+        }else{
+            result += GetTableLeft() + SourceTable.NonPrimaryKeyColumns[i].Name + GetTableRight() + "=?,";
+        }
+    }
+    return result;
+}
+public string GetSqlParamNames()
+{
+    string result = string.Empty;
+    for(int i = 0; i < SourceTable.Columns.Count; i++){
+        if(i == SourceTable.Columns.Count - 1 ){
+            result += "param"+SourceTable.Columns[i].Name;
+        }else{
+            result += "param"+SourceTable.Columns[i].Name+", ";
+        }
+    }
+    return result;
+}
+
+public string GetValues()
+{
+    string result = GetCamelName(SourceTable.Name)+".get" + SourceTable.PrimaryKey.MemberColumns[0].Name + "()";
+    for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
+    {
+        result += ", "+GetCamelName(SourceTable.Name)+".get"+ SourceTable.NonPrimaryKeyColumns[i].Name +"()";
+    }
+    return result;
+}
+
+public string GetValuesUpdate(){
+    string result = string.Empty;
+    for(int i = 0; i < SourceTable.NonPrimaryKeyColumns.Count; i++)
+    {
+        result += GetCamelName(SourceTable.Name)+".get"+ SourceTable.NonPrimaryKeyColumns[i].Name +"(), ";
+    }
+    result += GetCamelName(SourceTable.Name)+".get" + SourceTable.PrimaryKey.MemberColumns[0].Name + "()";
+    return result;
+}
+
+public string GetCSharpVariableType(ColumnSchema column)
+{
+	if (column.Name.EndsWith("TypeCode")) return column.Name;
+		
+	switch (column.DataType)
+	{
+		case DbType.AnsiString: return "String";
+		case DbType.AnsiStringFixedLength: return "String";
+		case DbType.Binary: return "byte[]";
+		case DbType.Boolean: return "boolean";
+		case DbType.Byte: return "byte";
+		case DbType.Currency: return "UUID";
+		case DbType.Date: return "Date";
+		case DbType.DateTime: return "Date";
+		case DbType.Decimal: return "float";
+		case DbType.Double: return "double";
+		case DbType.Guid: return "UUID";
+		case DbType.Int16: return "int";
+		case DbType.Int32: return "int";
+		case DbType.Int64: return "long";
+		case DbType.Object: 
+							if(column.NativeType=="date")
+								return "Date";
+							else
+								return "object";
+		case DbType.SByte: return "byte";
+		case DbType.Single: return "float";
+		case DbType.String: return "String";
+		case DbType.StringFixedLength: return "String";
+		case DbType.Time: return "Date";
+		case DbType.UInt16: return "short";
+		case DbType.UInt32: return "int";
+		case DbType.UInt64: return "long";
+		case DbType.VarNumeric: return "float";
+		default:
+		{
+			return "__UNKNOWN__" + column.NativeType;
+		}
+	}
+}
+</script>
+package <%=NameSpace %>.impl;
+
+import java.beans.IntrospectionException;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.poreader.dao.<%=GetCaseName(SourceTable.Name) %>Dao;
+import com.poreader.dao.pojo.<%=GetCaseName(SourceTable.Name) %>;
+import com.poreader.dao.util.Conn;
+import com.poreader.dao.util.DBUtils;
+
+public class <%=GetCaseName(SourceTable.Name) %>DaoImpl implements <%=GetCaseName(SourceTable.Name) %>Dao {
+
+    private static final Logger logger = LoggerFactory.getLogger(<%=GetCaseName(SourceTable.Name) %>DaoImpl.class);
+
+    public final String INSERT = "INSERT INTO <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%>(<%=GetSqlColumnNames()%>) VALUES(<%=GetSqlColumnParamsName()%>)";
+    public final String UPDATE = "UPDATE <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> SET <%=GetSqlUpdateParams()%> WHERE <%=GetTableLeft() %><%=SourceTable.PrimaryKey.MemberColumns[0].Name %><%=GetTableRight() %>=?";
+    public final String SELECTWHERE = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE %s ORDER BY %s";
+    public final String SELECTWHEREPAGE = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE %s ORDER BY %s LIMIT %s,%s";
+    public final String GET = "SELECT <%=GetSqlColumnNames()%> FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE <%=GetTableLeft() %><%=SourceTable.PrimaryKey.MemberColumns[0].Name %><%=GetTableRight() %>=?";
+    public final String DELETE = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE <%=GetTableLeft() %><%=SourceTable.PrimaryKey.MemberColumns[0].Name %><%=GetTableRight() %>=?";
+    public final String DELETEWHERE = "DELETE FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE %s";
+	public final String COUNTWHERE = "SELECT COUNT(-1) FROM <%=GetTableLeft() %><%=SourceTable%><%=GetTableRight()%> WHERE %s";
+    
+    public <%=GetCaseName(SourceTable.Name) %>DaoImpl(){ }
+    
+    public int Insert(<%=GetCaseName(SourceTable.Name) %> <%=GetCamelName(SourceTable.Name) %>) {
+        int result = 0;
+		if (<%=GetCamelName(SourceTable.Name) %> == null)
+			return result;
+		try {
+			Object[] values = new Object[] { <%=GetValues()%> };
+			result = DBUtils.ExecuteNonQuery(INSERT, values);
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+
+		return result;
+    }
+    
+    public int Insert(List<<%=GetCaseName(SourceTable.Name) %>> lists) {
+		int result = 0;
+		if (lists == null || lists.size() == 0)
+			return result;
+		Connection conn = Conn.getConnection();
+		try {
+			conn.setAutoCommit(false);
+			for (<%=GetCaseName(SourceTable.Name) %> <%=GetCamelName(SourceTable.Name) %> : lists) {
+				Object[] values = new Object[] { <%=GetValues()%> };
+				result += DBUtils.ExecuteNonQuery(conn, INSERT, values);
+			}
+			conn.commit();
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+			try {
+				conn.rollback();
+			} catch (SQLException e1) {
+				logger.error(e1.getMessage());
+			}
+		}
+
+		return result;
+	}
+    
+    public int InsertOrUpdate(<%=GetCaseName(SourceTable.Name) %> <%=GetCamelName(SourceTable.Name) %>) {
+		int result = 0;
+		if (<%=GetCamelName(SourceTable.Name) %> == null)
+			return result;
+		if (this.Get(<%=GetCamelName(SourceTable.Name) %>.get<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name)%>()) == null) {
+			result = this.Insert(<%=GetCamelName(SourceTable.Name) %>);
+		} else {
+			result = this.Update(<%=GetCamelName(SourceTable.Name) %>);
+		}
+		return result;
+	}
+    
+    public int InsertOrUpdate(List<<%=GetCaseName(SourceTable.Name) %>> lists) {
+		int result = 0;
+		if (lists == null || lists.size() == 0)
+			return result;
+		Connection conn = Conn.getConnection();
+		try {
+			conn.setAutoCommit(false);
+			for (<%=GetCaseName(SourceTable.Name) %> <%=GetCamelName(SourceTable.Name) %> : lists) {
+				if (this.Get(<%=GetCamelName(SourceTable.Name) %>.get<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name)%>()) == null) {
+					Object[] values = new Object[] { <%=GetValues()%> };
+					result += DBUtils.ExecuteNonQuery(conn, INSERT, values);
+				} else {
+					Object[] values = new Object[] { <%=GetValuesUpdate()%> };
+					result += DBUtils.ExecuteNonQuery(conn, UPDATE, values);
+				}
+			}
+			conn.commit();
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+		return result;
+	}
+    
+    public int Update(<%=GetCaseName(SourceTable.Name) %> <%=GetCamelName(SourceTable.Name) %>) {
+		int result = 0;
+		if (<%=GetCamelName(SourceTable.Name) %> == null)
+			return result;
+		try {
+			Object[] values = new Object[] { <%=GetValuesUpdate()%> };
+			result = DBUtils.ExecuteNonQuery(UPDATE, values);
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+
+		return result;
+	}
+    
+    public int Delete(<%=GetCSharpVariableType(SourceTable.PrimaryKey.MemberColumns[0])%> <%=GetCamelName(SourceTable.PrimaryKey.MemberColumns[0].Name) %>) {
+		int result = 0;
+		if (<%=GetCamelName(SourceTable.PrimaryKey.MemberColumns[0].Name) %> == null)
+			return result;
+		try {
+			Object[] values = new Object[] { <%=GetCamelName(SourceTable.PrimaryKey.MemberColumns[0].Name) %> };
+			result = DBUtils.ExecuteNonQuery(DELETE, values);
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+
+		return result;
+	}
+
+	public int DeleteAll() {
+		int result = 0;
+		String sql = String.format(DELETEWHERE, "1=1");
+		try {
+			result = DBUtils.ExecuteNonQuery(sql);
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+		return result;
+	}
+
+	public int DeleteAll(String where) {
+		int result = 0;
+		if (where == null || where.isEmpty())
+			where = "1=1";
+		String sql = String.format(DELETEWHERE, where);
+		try {
+			result = DBUtils.ExecuteNonQuery(sql);
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+		return result;
+	}
+
+	public int Delete(List<<%=GetCSharpVariableType(SourceTable.PrimaryKey.MemberColumns[0])%>> idLists) {
+		int result = 0;
+		if (idLists == null || idLists.size() == 0)
+			return result;
+		Connection conn = Conn.getConnection();
+		try {
+			conn.setAutoCommit(false);
+			for (<%=GetCSharpVariableType(SourceTable.PrimaryKey.MemberColumns[0])%> <%=GetCamelName(SourceTable.PrimaryKey.MemberColumns[0].Name) %> : idLists) {
+				Object[] values = new Object[] { <%=GetCamelName(SourceTable.PrimaryKey.MemberColumns[0].Name) %> };
+				result += DBUtils.ExecuteNonQuery(conn, DELETE, values);
+			}
+			conn.commit();
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		}
+		return result;
+	}
+
+    public List<<%=GetCaseName(SourceTable.Name) %>> Select() {
+		return this.Select(null);
+	}
+
+	public List<<%=GetCaseName(SourceTable.Name) %>> Select(String where) {
+		return this.Select(where, null);
+	}
+
+	public List<<%=GetCaseName(SourceTable.Name) %>> Select(String where, String order) {
+		List<<%=GetCaseName(SourceTable.Name) %>> result = null;
+		if (where == null || where.isEmpty())
+			where = "1=1";
+		if (order == null || order.isEmpty())
+			order = "<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name) %> DESC";
+		String sql = String.format(SELECTWHERE, where, order);
+		try {
+			result = DBUtils.ExecuteList(sql, <%=GetCaseName(SourceTable.Name) %>.class);
+		} catch (InstantiationException e) {
+			logger.error(e.getMessage());
+		} catch (IllegalAccessException e) {
+			logger.error(e.getMessage());
+		} catch (IllegalArgumentException e) {
+			logger.error(e.getMessage());
+		} catch (InvocationTargetException e) {
+			logger.error(e.getMessage());
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		} catch (IntrospectionException e) {
+			logger.error(e.getMessage());
+		}
+		return result;
+	}
+
+	public List<<%=GetCaseName(SourceTable.Name) %>> Select(int offset, int limit) {
+		return this.Select(null, offset, limit);
+	}
+
+	public List<<%=GetCaseName(SourceTable.Name) %>> Select(String where, int offset, int limit) {
+		return this.Select(where, null, offset, limit);
+	}
+
+	public List<<%=GetCaseName(SourceTable.Name) %>> Select(String where, String order, int offset,
+			int limit) {
+		List<<%=GetCaseName(SourceTable.Name) %>> result = null;
+		if (where == null || where.isEmpty())
+			where = "1=1";
+		if (order == null || order.isEmpty())
+			order = "<%=GetCaseName(SourceTable.PrimaryKey.MemberColumns[0].Name) %> DESC";
+		String sql = String
+				.format(SELECTWHEREPAGE, where, order, offset, limit);
+		try {
+			result = DBUtils.ExecuteList(sql, <%=GetCaseName(SourceTable.Name) %>.class);
+		} catch (InstantiationException e) {
+			logger.error(e.getMessage());
+		} catch (IllegalAccessException e) {
+			logger.error(e.getMessage());
+		} catch (IllegalArgumentException e) {
+			logger.error(e.getMessage());
+		} catch (InvocationTargetException e) {
+			logger.error(e.getMessage());
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		} catch (IntrospectionException e) {
+			logger.error(e.getMessage());
+		}
+		return result;
+	}
+
+    public <%=GetCaseName(SourceTable.Name) %> Get(<%=GetCSharpVariableType(SourceTable.PrimaryKey.MemberColumns[0])%> <%=GetCamelName(SourceTable.PrimaryKey.MemberColumns[0].Name)%>) {
+		<%=GetCaseName(SourceTable.Name) %> result = null;
+		if (<%=GetCamelName(SourceTable.PrimaryKey.MemberColumns[0].Name)%> == null)
+			return result;
+		Object[] values = new Object[] { <%=GetCamelName(SourceTable.PrimaryKey.MemberColumns[0].Name)%> };
+		try {
+			result = DBUtils.ExecuteEntity(GET, values, <%=GetCaseName(SourceTable.Name) %>.class);
+		} catch (InstantiationException e) {
+			logger.error(e.getMessage());
+		} catch (IllegalAccessException e) {
+			logger.error(e.getMessage());
+		} catch (IllegalArgumentException e) {
+			logger.error(e.getMessage());
+		} catch (InvocationTargetException e) {
+			logger.error(e.getMessage());
+		} catch (SQLException e) {
+			logger.error(e.getMessage());
+		} catch (IntrospectionException e) {
+			logger.error(e.getMessage());
+		}
+		return result;
+	}
+
+	public int Count(String where) {
+		int result = 0;
+		if (where == null || where.isEmpty())
+			where = "1=1";
+		String sql = String.format(COUNTWHERE, where);
+		try {
+			result = DBUtils.ExecuteScalar(sql);
+		} catch (SQLException e) {
+			logger.error(e.getLocalizedMessage());
+		}
+		return result;
+	}
+
+	public int Count() {
+		return this.Count(null);
+	}
+}
